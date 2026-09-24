@@ -1,5 +1,5 @@
 import Image from "next/image";
-import banner from "@/assets/banner.png";
+import logo from "@/assets/banner.png"
 
 const Banner = () => {
   return (
@@ -192,18 +192,13 @@ const Banner = () => {
                 rounded-[18px]
               ">
 
-                <Image
-                  src={banner}
+                <Image src={logo}
                   alt="FitLog workout"
                   fill
                   priority
-                  sizes="
-                    (max-width: 768px) 100vw,
-                    (max-width: 1200px) 50vw,
-                    570px
-                  "
-                  className="
-                    object-cover
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 570px"
+                  className="object-cover
+
                     transition-transform
                     duration-700
                     hover:scale-105
