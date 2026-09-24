@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import Link from "next/link";
 import Image from "next/image";
 
@@ -9,7 +11,7 @@ import {
   Star,
 } from "../shared/icons";
 
-import type { Workout } from "../../types";
+import type { Workout } from "../../../types";
 
 export function WorkoutCard({
   workout,
