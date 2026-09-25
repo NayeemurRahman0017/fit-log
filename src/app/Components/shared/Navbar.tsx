@@ -1,16 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import logo from "@/assets/logo.png";
+import { useApp } from "./AppProvider";
 
 type IconProps = {
   size?: number;
   strokeWidth?: number;
 };
 
-const Menu = ({ size = 24, strokeWidth = 2 }: IconProps) => (
+const Menu = ({
+  size = 24,
+  strokeWidth = 2,
+}: IconProps) => (
   <svg
     aria-hidden="true"
     fill="none"
@@ -29,7 +35,10 @@ const Menu = ({ size = 24, strokeWidth = 2 }: IconProps) => (
   </svg>
 );
 
-const X = ({ size = 24, strokeWidth = 2 }: IconProps) => (
+const CloseIcon = ({
+  size = 24,
+  strokeWidth = 2,
+}: IconProps) => (
   <svg
     aria-hidden="true"
     fill="none"
@@ -49,24 +58,45 @@ const X = ({ size = 24, strokeWidth = 2 }: IconProps) => (
 );
 
 const Navbar = () => {
+  const pathname = usePathname();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Temporary values.
-  // Later connect these with your global plan/saved state.
-  const planCount = 0;
-  const savedCount = 0;
+  /*
+   * Get LIVE data from AppProvider.
+   *
+   * Whenever:
+   * addToPlan()
+   * removeFromPlan()
+   * saveWorkout()
+   * unsaveWorkout()
+   *
+   * runs, these values update automatically.
+   */
+  const { plan, saved } = useApp();
+
+  const planCount = plan.length;
+  const savedCount = saved.length;
+
+  const isWorkoutActive = pathname === "/";
+  const isPlanActive = pathname.startsWith("/my-plan");
+
+  const closeMobileMenu = () => {
+    setIsMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#24282E] bg-[#0B0D10]/95 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-360 px-4 sm:px-6 lg:px-10 xl:px-12">
-
-        {/* ================= DESKTOP / MAIN NAVBAR ================= */}
-        <div className="flex h-18 items-center justify-between">
-
-          {/* LEFT - LOGO */}
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10 xl:px-12">
+        {/* =====================================================
+            MAIN NAVBAR
+        ====================================================== */}
+        <div className="flex h-[72px] items-center justify-between">
+          {/* =================================================
+              LEFT - LOGO
+          ================================================= */}
           <div className="flex items-center">
-
-            {/* Mobile menu */}
+            {/* Mobile menu button */}
             <button
               type="button"
               aria-label={
@@ -74,8 +104,9 @@ const Navbar = () => {
                   ? "Close navigation menu"
                   : "Open navigation menu"
               }
+              aria-expanded={isMenuOpen}
               onClick={() =>
-                setIsMenuOpen((prev) => !prev)
+                setIsMenuOpen((previous) => !previous)
               }
               className="
                 mr-3
@@ -93,14 +124,16 @@ const Navbar = () => {
               "
             >
               {isMenuOpen ? (
-                <X size={20} strokeWidth={1.8} />
+                <CloseIcon size={20} strokeWidth={1.8} />
               ) : (
                 <Menu size={20} strokeWidth={1.8} />
               )}
             </button>
 
+            {/* Logo */}
             <Link
               href="/"
+              onClick={closeMobileMenu}
               className="group flex items-center gap-2.5"
             >
               <Image
@@ -110,34 +143,37 @@ const Navbar = () => {
                 height={34}
                 priority
                 className="
-                  h-8.5
-                  w-8.5
+                  h-[34px]
+                  w-[34px]
                   object-contain
                   transition
                   group-hover:scale-105
                 "
               />
 
-              <span className="
-                font-display
-                text-[21px]
-                font-bold
-                tracking-[0.08em]
-                text-white
-              ">
+              <span
+                className="
+                  font-display
+                  text-[21px]
+                  font-bold
+                  tracking-[0.08em]
+                  text-white
+                "
+              >
                 FITLOG
               </span>
             </Link>
           </div>
 
-          {/* CENTER - NAVIGATION */}
+          {/* =================================================
+              CENTER - DESKTOP NAVIGATION
+          ================================================= */}
           <nav className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
             <div className="flex items-center gap-1">
-
               {/* WORKOUT */}
               <Link
                 href="/"
-                className="
+                className={`
                   relative
                   px-5
                   py-2.5
@@ -145,56 +181,81 @@ const Navbar = () => {
                   font-semibold
                   uppercase
                   tracking-[0.12em]
-                  text-[#C2F800]
                   transition
-                  hover:text-[#C2F800]
-                "
+                  ${
+                    isWorkoutActive
+                      ? "text-[#C2F800]"
+                      : "text-[#858A92] hover:text-white"
+                  }
+                `}
               >
                 Workout
 
-                {/* Active indicator */}
-                <span className="
-                  absolute
-                  bottom-0
-                  left-1/2
-                  h-0.5
-                  w-5
-                  -translate-x-1/2
-                  rounded-full
-                  bg-[#C2F800]
-                " />
+                {isWorkoutActive && (
+                  <span
+                    className="
+                      absolute
+                      bottom-0
+                      left-1/2
+                      h-0.5
+                      w-5
+                      -translate-x-1/2
+                      rounded-full
+                      bg-[#C2F800]
+                    "
+                  />
+                )}
               </Link>
 
               {/* MY PLAN */}
               <Link
                 href="/my-plan"
-                className="
+                className={`
+                  relative
                   px-5
                   py-2.5
                   text-[12px]
                   font-semibold
                   uppercase
                   tracking-[0.12em]
-                  text-[#858A92]
                   transition
-                  hover:text-white
-                "
+                  ${
+                    isPlanActive
+                      ? "text-[#C2F800]"
+                      : "text-[#858A92] hover:text-white"
+                  }
+                `}
               >
                 My Plan
-              </Link>
 
+                {isPlanActive && (
+                  <span
+                    className="
+                      absolute
+                      bottom-0
+                      left-1/2
+                      h-0.5
+                      w-5
+                      -translate-x-1/2
+                      rounded-full
+                      bg-[#C2F800]
+                    "
+                  />
+                )}
+              </Link>
             </div>
           </nav>
 
-          {/* RIGHT - COUNTERS */}
+          {/* =================================================
+              RIGHT - LIVE COUNTERS
+          ================================================= */}
           <div className="flex items-center gap-2">
-
             {/* PLAN */}
             <Link
               href="/my-plan"
               className="
                 inline-flex
-                h-8.5
+                h-[34px]
                 items-center
                 gap-2
                 rounded-full
@@ -212,17 +273,19 @@ const Navbar = () => {
             >
               <span>PLAN</span>
 
-              <span className="
-                flex
-                min-w-4.5
-                items-center
-                justify-center
-                rounded-full
-                bg-[#080A0D]/10
-                px-1
-                py-0.5
-                text-[10px]
-              ">
+              <span
+                className="
+                  flex
+                  min-w-[18px]
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-[#080A0D]/10
+                  px-1
+                  py-0.5
+                  text-[10px]
+                "
+              >
                 {planCount}
               </span>
             </Link>
@@ -232,7 +295,7 @@ const Navbar = () => {
               href="/my-plan"
               className="
                 inline-flex
-                h-8.5
+                h-[34px]
                 items-center
                 gap-2
                 rounded-full
@@ -251,41 +314,43 @@ const Navbar = () => {
             >
               <span>SAVED</span>
 
-              <span className="
-                flex
-                min-w-4.5
-                items-center
-                justify-center
-                rounded-full
-                bg-[#C2F800]/10
-                px-1
-                py-0.5
-                text-[10px]
-              ">
+              <span
+                className="
+                  flex
+                  min-w-[18px]
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-[#C2F800]/10
+                  px-1
+                  py-0.5
+                  text-[10px]
+                "
+              >
                 {savedCount}
               </span>
             </Link>
-
           </div>
         </div>
 
-        {/* ================= MOBILE NAVIGATION ================= */}
+        {/* =====================================================
+            MOBILE NAVIGATION
+        ====================================================== */}
         {isMenuOpen && (
-          <div className="
-            border-t
-            border-[#24282E]
-            py-4
-            lg:hidden
-          ">
-
+          <div
+            className="
+              border-t
+              border-[#24282E]
+              py-4
+              lg:hidden
+            "
+          >
             <nav className="flex flex-col gap-1">
-
+              {/* Workout */}
               <Link
                 href="/"
-                onClick={() =>
-                  setIsMenuOpen(false)
-                }
-                className="
+                onClick={closeMobileMenu}
+                className={`
                   rounded-lg
                   px-4
                   py-3
@@ -293,20 +358,22 @@ const Navbar = () => {
                   font-bold
                   uppercase
                   tracking-[0.12em]
-                  text-[#C2F800]
                   transition
-                  hover:bg-[#15181D]
-                "
+                  ${
+                    isWorkoutActive
+                      ? "bg-[#C2F800]/10 text-[#C2F800]"
+                      : "text-[#858A92] hover:bg-[#15181D] hover:text-white"
+                  }
+                `}
               >
                 Workout
               </Link>
 
+              {/* My Plan */}
               <Link
                 href="/my-plan"
-                onClick={() =>
-                  setIsMenuOpen(false)
-                }
-                className="
+                onClick={closeMobileMenu}
+                className={`
                   rounded-lg
                   px-4
                   py-3
@@ -314,17 +381,73 @@ const Navbar = () => {
                   font-bold
                   uppercase
                   tracking-[0.12em]
-                  text-[#858A92]
                   transition
-                  hover:bg-[#15181D]
-                  hover:text-white
-                "
+                  ${
+                    isPlanActive
+                      ? "bg-[#C2F800]/10 text-[#C2F800]"
+                      : "text-[#858A92] hover:bg-[#15181D] hover:text-white"
+                  }
+                `}
               >
                 My Plan
               </Link>
 
-            </nav>
+              {/* Mobile Counters */}
+              <div className="flex gap-2 px-4 pt-3">
+                {/* Mobile Plan */}
+                <Link
+                  href="/my-plan"
+                  onClick={closeMobileMenu}
+                  className="
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    bg-[#C2F800]
+                    px-4
+                    py-2.5
+                    text-[10px]
+                    font-extrabold
+                    uppercase
+                    tracking-[0.12em]
+                    text-[#080A0D]
+                  "
+                >
+                  <span>PLAN</span>
 
+                  <span className="font-bold">
+                    {planCount}
+                  </span>
+                </Link>
+
+                {/* Mobile Saved */}
+                <Link
+                  href="/my-plan"
+                  onClick={closeMobileMenu}
+                  className="
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    border
+                    border-[#C2F800]
+                    px-4
+                    py-2.5
+                    text-[10px]
+                    font-extrabold
+                    uppercase
+                    tracking-[0.12em]
+                    text-[#C2F800]
+                  "
+                >
+                  <span>SAVED</span>
+
+                  <span className="font-bold">
+                    {savedCount}
+                  </span>
+                </Link>
+              </div>
+            </nav>
           </div>
         )}
       </div>

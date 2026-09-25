@@ -11,7 +11,8 @@ import {
 
 import type { PlanItem, Workout } from "@/types";
 
-const API_URL = "https://api.abcz.workers.dev/api/fitlog";
+const API_URL =
+  "https://api.abcz.workers.dev/api/fitlog";
 
 const PLAN_KEY = "fitlog-plan-v1";
 const SAVED_KEY = "fitlog-saved-v1";
@@ -24,6 +25,7 @@ type Toast = {
 type ContextValue = {
   workouts: Workout[];
   loading: boolean;
+  error: string | null;
 
   plan: PlanItem[];
   saved: number[];
@@ -41,71 +43,101 @@ type ContextValue = {
   isSaved: (id: number) => boolean;
 };
 
-const AppContext = createContext<ContextValue | null>(null);
+const AppContext =
+  createContext<ContextValue | null>(null);
 
 export function AppProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [workouts, setWorkouts] =
+    useState<Workout[]>([]);
 
-  /*
-   * IMPORTANT:
-   * Start with the same values on server and client.
-   */
-  const [plan, setPlan] = useState<PlanItem[]>([]);
-  const [saved, setSaved] = useState<number[]>([]);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [hydrated, setHydrated] = useState(false);
-  const [toast, setToast] = useState<Toast>(null);
+  const [error, setError] =
+    useState<string | null>(null);
 
-  /*
-   * Load saved data from localStorage
-   * AFTER the first render.
-   */
+  const [plan, setPlan] =
+    useState<PlanItem[]>([]);
+
+  const [saved, setSaved] =
+    useState<number[]>([]);
+
+  const [toast, setToast] =
+    useState<Toast>(null);
+
+  const [hydrated, setHydrated] =
+    useState(false);
+
+  // --------------------------------
+  // LOAD DATA FROM LOCAL STORAGE
+  // --------------------------------
+
   useEffect(() => {
-    let nextPlan: PlanItem[] | undefined;
-    let nextSaved: number[] | undefined;
-
     try {
-      const rawPlan = localStorage.getItem(PLAN_KEY);
+      const savedPlan =
+        localStorage.getItem(PLAN_KEY);
 
-      if (rawPlan) {
-        const parsedPlan: PlanItem[] = JSON.parse(rawPlan);
+      const savedItems =
+        localStorage.getItem(SAVED_KEY);
+
+      if (savedPlan) {
+        const parsedPlan: unknown =
+          JSON.parse(savedPlan);
 
         if (Array.isArray(parsedPlan)) {
-          nextPlan = parsedPlan;
+          const validPlan =
+            parsedPlan.filter(
+              (item): item is PlanItem =>
+                typeof item === "object" &&
+                item !== null &&
+                "id" in item &&
+                "done" in item &&
+                typeof item.id === "number" &&
+                typeof item.done === "boolean"
+            );
+
+          window.setTimeout(() => {
+            setPlan(validPlan);
+          }, 0);
         }
       }
 
-      const rawSaved = localStorage.getItem(SAVED_KEY);
-
-      if (rawSaved) {
-        const parsedSaved: number[] = JSON.parse(rawSaved);
+      if (savedItems) {
+        const parsedSaved: unknown =
+          JSON.parse(savedItems);
 
         if (Array.isArray(parsedSaved)) {
-          nextSaved = parsedSaved;
+          const validSaved =
+            parsedSaved.filter(
+              (id): id is number =>
+                typeof id === "number"
+            );
+
+          window.setTimeout(() => {
+            setSaved(validSaved);
+          }, 0);
         }
       }
     } catch (error) {
       console.error(
-        "Failed to load FitLog data:",
+        "Failed to load localStorage:",
         error
       );
     } finally {
-      queueMicrotask(() => {
-        if (nextPlan) setPlan(nextPlan);
-        if (nextSaved) setSaved(nextSaved);
+      window.setTimeout(() => {
         setHydrated(true);
-      });
+      }, 0);
     }
   }, []);
 
-  /*
-   * Persist plan
-   */
+  // --------------------------------
+  // SAVE PLAN TO LOCAL STORAGE
+  // --------------------------------
+
   useEffect(() => {
     if (!hydrated) return;
 
@@ -115,9 +147,10 @@ export function AppProvider({
     );
   }, [plan, hydrated]);
 
-  /*
-   * Persist saved workouts
-   */
+  // --------------------------------
+  // SAVE SAVED WORKOUTS
+  // --------------------------------
+
   useEffect(() => {
     if (!hydrated) return;
 
@@ -127,30 +160,43 @@ export function AppProvider({
     );
   }, [saved, hydrated]);
 
-  /*
-   * Fetch workouts from API
-   */
+  // --------------------------------
+  // FETCH WORKOUTS FROM API
+  // --------------------------------
+
   useEffect(() => {
-    const controller = new AbortController();
+    const controller =
+      new AbortController();
 
     async function fetchWorkouts() {
       try {
         setLoading(true);
+        setError(null);
 
-        const response = await fetch(API_URL, {
-          signal: controller.signal,
-          cache: "no-store",
-        });
+        const response = await fetch(
+          API_URL,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
           throw new Error(
-            `Failed to load workouts: ${response.status}`
+            `Failed to fetch workouts: ${response.status}`
           );
         }
 
-        const data: Workout[] = await response.json();
+        const data: unknown =
+          await response.json();
 
-        setWorkouts(data);
+        if (!Array.isArray(data)) {
+          throw new Error(
+            "Invalid workout data received."
+          );
+        }
+
+        setWorkouts(data as Workout[]);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -165,6 +211,12 @@ export function AppProvider({
         );
 
         setWorkouts([]);
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load workouts."
+        );
       } finally {
         setLoading(false);
       }
@@ -177,9 +229,10 @@ export function AppProvider({
     };
   }, []);
 
-  /*
-   * Toast
-   */
+  // --------------------------------
+  // TOAST
+  // --------------------------------
+
   const showToast = useCallback(
     (message: string) => {
       const id = Date.now();
@@ -191,24 +244,28 @@ export function AppProvider({
 
       window.setTimeout(() => {
         setToast((current) =>
-          current?.id === id ? null : current
+          current?.id === id
+            ? null
+            : current
         );
       }, 2400);
     },
     []
   );
 
-  /*
-   * Add to today's plan
-   */
+  // --------------------------------
+  // ADD TO PLAN
+  // --------------------------------
+
   const addToPlan = useCallback(
     (id: number) => {
       setPlan((current) => {
-        if (
+        const alreadyExists =
           current.some(
             (item) => item.id === id
-          )
-        ) {
+          );
+
+        if (alreadyExists) {
           showToast(
             "Already in today's plan"
           );
@@ -240,9 +297,10 @@ export function AppProvider({
     [showToast]
   );
 
-  /*
-   * Remove from today's plan
-   */
+  // --------------------------------
+  // REMOVE FROM PLAN
+  // --------------------------------
+
   const removeFromPlan = useCallback(
     (id: number) => {
       setPlan((current) =>
@@ -258,9 +316,10 @@ export function AppProvider({
     [showToast]
   );
 
-  /*
-   * Mark as done
-   */
+  // --------------------------------
+  // MARK WORKOUT AS DONE
+  // --------------------------------
+
   const toggleDone = useCallback(
     (id: number) => {
       setPlan((current) =>
@@ -281,9 +340,10 @@ export function AppProvider({
     [showToast]
   );
 
-  /*
-   * Save workout
-   */
+  // --------------------------------
+  // SAVE WORKOUT
+  // --------------------------------
+
   const saveWorkout = useCallback(
     (id: number) => {
       setSaved((current) => {
@@ -297,15 +357,19 @@ export function AppProvider({
           "Saved for later"
         );
 
-        return [...current, id];
+        return [
+          ...current,
+          id,
+        ];
       });
     },
     [showToast]
   );
 
-  /*
-   * Remove from saved
-   */
+  // --------------------------------
+  // REMOVE SAVED WORKOUT
+  // --------------------------------
+
   const unsaveWorkout = useCallback(
     (id: number) => {
       setSaved((current) =>
@@ -321,13 +385,15 @@ export function AppProvider({
     [showToast]
   );
 
-  /*
-   * Context value
-   */
+  // --------------------------------
+  // CONTEXT VALUE
+  // --------------------------------
+
   const value = useMemo<ContextValue>(
     () => ({
       workouts,
       loading,
+      error,
 
       plan,
       saved,
@@ -341,23 +407,26 @@ export function AppProvider({
       saveWorkout,
       unsaveWorkout,
 
-      isInPlan: (id) =>
+      isInPlan: (id: number) =>
         plan.some(
           (item) => item.id === id
         ),
 
-      isSaved: (id) =>
+      isSaved: (id: number) =>
         saved.includes(id),
     }),
     [
       workouts,
       loading,
+      error,
       plan,
       saved,
       toast,
+
       addToPlan,
       removeFromPlan,
       toggleDone,
+
       saveWorkout,
       unsaveWorkout,
     ]
@@ -372,30 +441,35 @@ export function AppProvider({
   );
 }
 
-/*
- * Toast UI
- */
+// --------------------------------
+// TOAST UI
+// --------------------------------
+
 function ToastView({
   toast,
 }: {
   toast: Toast;
 }) {
-  if (!toast) {
-    return null;
-  }
+  if (!toast) return null;
 
   return (
-    <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-acid/30 bg-[#151515] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-2xl">
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-full border border-[#C2F800]/30 bg-[#151515] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-2xl"
+    >
       {toast.message}
     </div>
   );
 }
 
-/*
- * useApp hook
- */
+// --------------------------------
+// USE APP HOOK
+// --------------------------------
+
 export function useApp() {
-  const value = useContext(AppContext);
+  const value =
+    useContext(AppContext);
 
   if (!value) {
     throw new Error(
