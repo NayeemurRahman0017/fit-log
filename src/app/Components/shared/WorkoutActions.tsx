@@ -29,7 +29,7 @@ export default function WorkoutActions({
 
   return (
     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-      {/* PLAN BUTTON */}
+      
       <button
         type="button"
         onClick={() => {
@@ -58,7 +58,7 @@ export default function WorkoutActions({
         )}
       </button>
 
-      {/* SAVE BUTTON */}
+      
       <button
         type="button"
         onClick={() => {

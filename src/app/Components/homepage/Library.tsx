@@ -40,23 +40,21 @@ export default function Library() {
       <div className="container mx-auto">
     
       <div className="mx-auto max-w-350">
-        {/* Header */}
+        
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-[#ccff00]">
               THE LIBRARY
             </p>
 
-            <h2 className="font-display text-4xl font-black uppercase leading-none tracking-tight text-white sm:text-5xl">
-              WORKOUT LIBRARY
-            </h2>
+            
 
             <p className="mt-4 text-sm text-[#8a8a8a] sm:text-base">
               Twelve lifts covering every major muscle group.
             </p>
           </div>
 
-          {/* Sort */}
+          
           <div className="relative">
             <select
               value={sortBy}
@@ -77,7 +75,7 @@ export default function Library() {
           </div>
         </div>
 
-        {/* Loading */}
+        
         {loading && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -89,7 +87,7 @@ export default function Library() {
           </div>
         )}
 
-        {/* Empty */}
+       
         {!loading && sortedWorkouts.length === 0 && (
           <div className="rounded-2xl border border-[#2a2a2a] bg-[#111] px-6 py-16 text-center">
             <h3 className="font-display text-2xl font-bold uppercase text-white">
@@ -102,7 +100,7 @@ export default function Library() {
           </div>
         )}
 
-        {/* Workout Grid */}
+        
         {!loading && sortedWorkouts.length > 0 && (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {sortedWorkouts.map((workout) => (

@@ -3,7 +3,7 @@ export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-[#050505]">
         <div className="container mx-auto">
-      <div className="container-fit flex min-h-35 flex-col justify-between gap-6 py-8 sm:flex-row sm:items-end">
+      <div className="container-fit flex min-h-8 flex-col justify-between gap-6 py-8 sm:flex-row sm:items-end">
         <Link
           href="/"
           className="flex items-center gap-2"
@@ -25,7 +25,7 @@ export function Footer() {
             </svg>
           </span>
 
-          <span className="display text-lg font-bold text-white/40">
+          <span className="display text-lg font-bold text-[green]">
             FITLOG
           </span>
         </Link>

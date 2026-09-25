@@ -5,39 +5,45 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Clock3,
-  Flame,
+  
   Star,
-  Dumbbell,
-  CheckCircle2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
 import type { Workout } from "../../../types";
 import WorkoutActions from "../../Components/shared/WorkoutActions";
 
-const API_URL = "https://api.abcz.workers.dev/api/fitlog";
+const API_URL =
+  "https://api.abcz.workers.dev/api/fitlog";
 
 export default function WorkoutDetailsPage() {
   const params = useParams();
 
-  const [workout, setWorkout] = useState<Workout | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [workout, setWorkout] =
+    useState<Workout | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  
 
   useEffect(() => {
-    const loadWorkout = async () => {
+    async function loadWorkout() {
       try {
         setLoading(true);
-        setError("");
+        setError(null);
 
         const id = params.id;
 
         if (!id) {
-          throw new Error("Workout ID not found");
+          throw new Error(
+            "Workout ID is missing."
+          );
         }
 
-        // Single workout API
         const response = await fetch(
           `${API_URL}/${id}`,
           {
@@ -51,71 +57,59 @@ export default function WorkoutDetailsPage() {
           );
         }
 
-        const data: Workout = await response.json();
+        const data: Workout =
+          await response.json();
 
         setWorkout(data);
       } catch (err) {
-        console.error("Workout loading error:", err);
+        console.error(
+          "Workout loading error:",
+          err
+        );
 
         setError(
           err instanceof Error
             ? err.message
-            : "Something went wrong"
+            : "Unable to load workout."
         );
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     loadWorkout();
   }, [params.id]);
 
-  /* ================= LOADING ================= */
+  
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-[#090909] px-4 py-10 text-white sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-7xl">
-          <div className="h-5 w-32 animate-pulse rounded bg-[#222]" />
-
-          <div className="mt-8 grid gap-10 lg:grid-cols-2">
-            <div className="aspect-[16/10] animate-pulse rounded-2xl bg-[#151515]" />
-
-            <div className="space-y-5">
-              <div className="h-10 w-3/4 animate-pulse rounded bg-[#151515]" />
-              <div className="h-5 w-1/2 animate-pulse rounded bg-[#151515]" />
-              <div className="h-24 animate-pulse rounded bg-[#151515]" />
-              <div className="h-14 animate-pulse rounded bg-[#151515]" />
-            </div>
-          </div>
-        </div>
-      </main>
-    );
+    return <WorkoutDetailsSkeleton />;
   }
 
-  /* ================= ERROR ================= */
+  
 
   if (error || !workout) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#090909] px-5 text-white">
-        <div className="text-center">
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-[#ccff00]">
+      <main className="min-h-screen bg-[#0a0b0d] px-5 py-10 text-white">
+        <div className="mx-auto flex min-h-[70vh] max-w-6xl flex-col items-center justify-center text-center">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-[#ccff00]">
             404
           </p>
 
-          <h1 className="mt-3 text-3xl font-black uppercase">
+          <h1 className="mt-3 font-display text-3xl font-black uppercase">
             Workout Not Found
           </h1>
 
-          <p className="mt-3 text-sm text-[#777]">
-            {error || "The workout could not be loaded."}
+          <p className="mt-3 max-w-md text-sm text-[#777]">
+            {error ||
+              "The requested workout could not be loaded."}
           </p>
 
           <Link
             href="/"
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#ccff00] px-6 py-3 text-sm font-black uppercase text-black"
+            className="mt-7 inline-flex items-center gap-2 rounded-lg bg-[#ccff00] px-5 py-3 text-xs font-black uppercase text-black"
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft size={15} />
             Back to workouts
           </Link>
         </div>
@@ -123,53 +117,59 @@ export default function WorkoutDetailsPage() {
     );
   }
 
-  /* ================= DETAILS ================= */
+ 
 
   return (
-    <main className="min-h-screen bg-[#090909] px-4 py-10 text-white sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-[#0a0b0d] text-white">
 
-        {/* BACK BUTTON */}
+      <div className="mx-auto max-w-300 px-4 py-7 sm:px-6 lg:px-8">
 
+       
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-bold text-[#888] transition hover:text-[#ccff00]"
+          className="mb-6 inline-flex items-center gap-2 text-[10px] font-bold text-[#73767c] transition hover:text-[#ccff00]"
         >
-          <ArrowLeft size={17} />
+          <ArrowLeft size={13} />
           Back to workouts
         </Link>
 
-        {/* MAIN */}
+        
 
-        <section className="mt-8 grid gap-10 lg:grid-cols-2 lg:items-start">
+        <div className="grid gap-7 lg:grid-cols-[1fr_1fr]">
 
-          {/* IMAGE */}
 
-          <div className="relative overflow-hidden rounded-2xl border border-[#292929] bg-[#111]">
-            <div className="relative aspect-[16/10]">
-              <Image
-                src={workout.image}
-                alt={workout.name}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
+          <div className="relative h-75 overflow-hidden rounded-lg bg-[#15171b] sm:h-107.5 lg:h-125">
+            <Image
+              src={workout.image}
+              alt={workout.name}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+            />
           </div>
 
-          {/* INFO */}
 
-          <div>
+          <div className="flex flex-col">
 
-            {/* TAGS */}
+            
 
-            <div className="flex flex-wrap gap-2">
+            <h1 className="font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl">
+              {workout.name}
+            </h1>
+
+
+            <p className="mt-2 max-w-xl text-[10px] leading-5 text-[#85888e] sm:text-[11px]">
+              {workout.description}
+            </p>
+
+
+            <div className="mt-4 flex flex-wrap gap-2">
               {workout.muscleGroups.map(
-                (muscle: Workout["muscleGroups"][number]) => (
+                (muscle) => (
                   <span
                     key={muscle}
-                    className="rounded-full bg-[#ccff00] px-3 py-1 text-[10px] font-black uppercase text-black"
+                    className="rounded-full bg-[#ccff00] px-3 py-1 text-[8px] font-black uppercase tracking-wide text-black"
                   >
                     {muscle}
                   </span>
@@ -177,176 +177,146 @@ export default function WorkoutDetailsPage() {
               )}
             </div>
 
-            {/* TITLE */}
+            <div className="mt-4 overflow-hidden rounded-lg border border-[#22252b] bg-[#14161b]">
 
-            <h1 className="mt-5 font-display text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl lg:text-6xl">
-              {workout.name}
-            </h1>
+              <InfoRow
+                label="Equipment"
+                value={workout.equipment}
+              />
 
-            {/* EQUIPMENT */}
+              <InfoRow
+                label="Difficulty"
+                value={workout.difficulty}
+              />
 
-            <div className="mt-4 flex items-center gap-2 text-sm text-[#888]">
-              <Dumbbell size={17} />
-              {workout.equipment}
-            </div>
+              <InfoRow
+                label="Sets"
+                value={String(workout.sets)}
+              />
 
-            {/* STATS */}
+              <InfoRow
+                label="Reps"
+                value={workout.reps}
+              />
 
-            <div className="mt-8 grid grid-cols-3 gap-3">
+              <InfoRow
+                label="Duration"
+                value={`${workout.duration} min`}
+              />
 
-              <div className="rounded-xl border border-[#292929] bg-[#111] p-4">
-                <Clock3
-                  size={18}
-                  className="text-[#ccff00]"
-                />
+              <InfoRow
+                label="Calories"
+                value={`${workout.caloriesBurned} kcal`}
+              />
 
-                <p className="mt-3 text-xl font-black">
-                  {workout.duration}
-                </p>
-
-                <p className="text-[10px] font-bold uppercase text-[#777]">
-                  Minutes
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-[#292929] bg-[#111] p-4">
-                <Flame
-                  size={18}
-                  className="text-[#ccff00]"
-                />
-
-                <p className="mt-3 text-xl font-black">
-                  {workout.caloriesBurned}
-                </p>
-
-                <p className="text-[10px] font-bold uppercase text-[#777]">
-                  Calories
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-[#292929] bg-[#111] p-4">
-                <Star
-                  size={18}
-                  className="text-[#ccff00]"
-                />
-
-                <p className="mt-3 text-xl font-black">
-                  {workout.rating}
-                </p>
-
-                <p className="text-[10px] font-bold uppercase text-[#777]">
-                  Rating
-                </p>
-              </div>
+              <InfoRow
+                label="Rating"
+                value={
+                  <span className="flex items-center justify-end gap-1">
+                    <Star
+                      size={10}
+                      className="fill-[#ccff00] text-[#ccff00]"
+                    />
+                    {workout.rating}
+                  </span>
+                }
+              />
 
             </div>
 
-            {/* DESCRIPTION */}
 
-            <div className="mt-8">
-              <h2 className="text-sm font-black uppercase tracking-[0.15em] text-[#ccff00]">
-                About this workout
+            <div className="mt-5">
+
+              <h2 className="text-[10px] font-black uppercase tracking-[0.12em] text-white">
+                Instructions
               </h2>
 
-              <p className="mt-3 text-sm leading-7 text-[#999]">
-                {workout.description}
-              </p>
+              <div className="mt-2 space-y-1.5">
+
+                {workout.instructions.map(
+                  (instruction, index) => (
+                    <div
+                      key={index}
+                      className="flex gap-2 text-[9px] leading-4 text-[#85888e]"
+                    >
+                      <span className="shrink-0 text-[#777]">
+                        {index + 1}.
+                      </span>
+
+                      <p>{instruction}</p>
+                    </div>
+                  )
+                )}
+
+              </div>
+
             </div>
 
-            {/* ACTION BUTTONS */}
 
             <WorkoutActions
               workoutId={workout.id}
             />
 
           </div>
-        </section>
+        </div>
 
-        {/* ================= WORKOUT INFO ================= */}
+      </div>
+    </main>
+  );
+}
 
-        <section className="mt-16 grid gap-8 lg:grid-cols-2">
 
-          {/* SETS & REPS */}
 
-          <div className="rounded-2xl border border-[#292929] bg-[#111] p-6">
-            <h2 className="font-display text-2xl font-black uppercase">
-              Workout Details
-            </h2>
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-7 items-center justify-between border-b border-[#202329] px-3 last:border-b-0">
+      <span className="text-[8px] font-bold uppercase tracking-[0.08em] text-[#777b82]">
+        {label}
+      </span>
 
-            <div className="mt-6 grid grid-cols-2 gap-4">
+      <span className="text-right text-[8px] font-medium text-[#d1d3d6]">
+        {value}
+      </span>
+    </div>
+  );
+}
 
-              <div className="rounded-xl bg-[#181818] p-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#777]">
-                  Difficulty
-                </p>
 
-                <p className="mt-2 text-lg font-black uppercase text-[#ccff00]">
-                  {workout.difficulty}
-                </p>
-              </div>
 
-              <div className="rounded-xl bg-[#181818] p-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#777]">
-                  Sets
-                </p>
+function WorkoutDetailsSkeleton() {
+  return (
+    <main className="min-h-screen bg-[#0a0b0d] px-4 py-8 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-300">
 
-                <p className="mt-2 text-lg font-black">
-                  {workout.sets}
-                </p>
-              </div>
+        <div className="h-3 w-28 animate-pulse rounded bg-[#181a1f]" />
 
-              <div className="rounded-xl bg-[#181818] p-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#777]">
-                  Reps
-                </p>
+        <div className="mt-6 grid gap-7 lg:grid-cols-2">
 
-                <p className="mt-2 text-lg font-black">
-                  {workout.reps}
-                </p>
-              </div>
+          <div className="h-75 animate-pulse rounded-lg bg-[#15171b] sm:h-107.5 lg:h-125" />
 
-              <div className="rounded-xl bg-[#181818] p-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#777]">
-                  Equipment
-                </p>
+          <div className="space-y-4">
 
-                <p className="mt-2 text-sm font-bold">
-                  {workout.equipment}
-                </p>
-              </div>
+            <div className="h-10 w-3/4 animate-pulse rounded bg-[#15171b]" />
 
-            </div>
+            <div className="h-10 w-full animate-pulse rounded bg-[#15171b]" />
+
+            <div className="h-6 w-40 animate-pulse rounded bg-[#15171b]" />
+
+            <div className="h-55 animate-pulse rounded-lg bg-[#15171b]" />
+
+            <div className="h-20 animate-pulse rounded bg-[#15171b]" />
+
+            <div className="h-10 w-60 animate-pulse rounded bg-[#15171b]" />
+
           </div>
 
-          {/* INSTRUCTIONS */}
-
-          <div className="rounded-2xl border border-[#292929] bg-[#111] p-6">
-            <h2 className="font-display text-2xl font-black uppercase">
-              Instructions
-            </h2>
-
-            <div className="mt-6 space-y-4">
-              {workout.instructions.map(
-                (instruction: string, index: number) => (
-                  <div
-                    key={index}
-                    className="flex gap-4 rounded-xl bg-[#181818] p-4"
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#ccff00] text-xs font-black text-black">
-                      {index + 1}
-                    </div>
-
-                    <p className="text-sm leading-6 text-[#aaa]">
-                      {instruction}
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
-        </section>
-
+        </div>
       </div>
     </main>
   );

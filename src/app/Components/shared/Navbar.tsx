@@ -62,17 +62,7 @@ const Navbar = () => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  /*
-   * Get LIVE data from AppProvider.
-   *
-   * Whenever:
-   * addToPlan()
-   * removeFromPlan()
-   * saveWorkout()
-   * unsaveWorkout()
-   *
-   * runs, these values update automatically.
-   */
+ 
   const { plan, saved } = useApp();
 
   const planCount = plan.length;
@@ -87,16 +77,12 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#24282E] bg-[#0B0D10]/95 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10 xl:px-12">
-        {/* =====================================================
-            MAIN NAVBAR
-        ====================================================== */}
-        <div className="flex h-[72px] items-center justify-between">
-          {/* =================================================
-              LEFT - LOGO
-          ================================================= */}
+      <div className="mx-auto w-full max-w-360 px-4 sm:px-6 lg:px-10 xl:px-12">
+        
+        <div className="flex h-18 items-center justify-between">
+          
           <div className="flex items-center">
-            {/* Mobile menu button */}
+            
             <button
               type="button"
               aria-label={
@@ -130,7 +116,7 @@ const Navbar = () => {
               )}
             </button>
 
-            {/* Logo */}
+            
             <Link
               href="/"
               onClick={closeMobileMenu}
@@ -143,8 +129,8 @@ const Navbar = () => {
                 height={34}
                 priority
                 className="
-                  h-[34px]
-                  w-[34px]
+                  h-8.5
+                  w-8.5
                   object-contain
                   transition
                   group-hover:scale-105
@@ -165,12 +151,9 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* =================================================
-              CENTER - DESKTOP NAVIGATION
-          ================================================= */}
           <nav className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
             <div className="flex items-center gap-1">
-              {/* WORKOUT */}
+              
               <Link
                 href="/"
                 className={`
@@ -179,6 +162,7 @@ const Navbar = () => {
                   py-2.5
                   text-[12px]
                   font-semibold
+                  text-[green]
                   uppercase
                   tracking-[0.12em]
                   transition
@@ -207,7 +191,6 @@ const Navbar = () => {
                 )}
               </Link>
 
-              {/* MY PLAN */}
               <Link
                 href="/my-plan"
                 className={`
@@ -226,7 +209,7 @@ const Navbar = () => {
                   }
                 `}
               >
-                My Plan
+                Your Plan
 
                 {isPlanActive && (
                   <span
@@ -246,16 +229,14 @@ const Navbar = () => {
             </div>
           </nav>
 
-          {/* =================================================
-              RIGHT - LIVE COUNTERS
-          ================================================= */}
+          
           <div className="flex items-center gap-2">
-            {/* PLAN */}
+            
             <Link
               href="/my-plan"
               className="
                 inline-flex
-                h-[34px]
+                h-8.5
                 items-center
                 gap-2
                 rounded-full
@@ -276,7 +257,7 @@ const Navbar = () => {
               <span
                 className="
                   flex
-                  min-w-[18px]
+                  min-w-4.5
                   items-center
                   justify-center
                   rounded-full
@@ -290,12 +271,12 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* SAVED */}
+            
             <Link
               href="/my-plan"
               className="
                 inline-flex
-                h-[34px]
+                h-8.5
                 items-center
                 gap-2
                 rounded-full
@@ -317,7 +298,7 @@ const Navbar = () => {
               <span
                 className="
                   flex
-                  min-w-[18px]
+                  min-w-4.5
                   items-center
                   justify-center
                   rounded-full
@@ -333,9 +314,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* =====================================================
-            MOBILE NAVIGATION
-        ====================================================== */}
+        
         {isMenuOpen && (
           <div
             className="
@@ -346,7 +325,7 @@ const Navbar = () => {
             "
           >
             <nav className="flex flex-col gap-1">
-              {/* Workout */}
+              
               <Link
                 href="/"
                 onClick={closeMobileMenu}
@@ -356,6 +335,7 @@ const Navbar = () => {
                   py-3
                   text-xs
                   font-bold
+                  text-[Green]
                   uppercase
                   tracking-[0.12em]
                   transition
@@ -369,7 +349,7 @@ const Navbar = () => {
                 Workout
               </Link>
 
-              {/* My Plan */}
+             
               <Link
                 href="/my-plan"
                 onClick={closeMobileMenu}
@@ -389,12 +369,12 @@ const Navbar = () => {
                   }
                 `}
               >
-                My Plan
+                Your Plan
               </Link>
 
-              {/* Mobile Counters */}
+              
               <div className="flex gap-2 px-4 pt-3">
-                {/* Mobile Plan */}
+                
                 <Link
                   href="/my-plan"
                   onClick={closeMobileMenu}
@@ -420,7 +400,7 @@ const Navbar = () => {
                   </span>
                 </Link>
 
-                {/* Mobile Saved */}
+                
                 <Link
                   href="/my-plan"
                   onClick={closeMobileMenu}

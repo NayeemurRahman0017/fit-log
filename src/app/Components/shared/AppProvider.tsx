@@ -2,35 +2,28 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
+  type ReactNode,
 } from "react";
 
-import type { PlanItem, Workout } from "@/types";
+import type { Workout, PlanItem } from "../../../types";
 
 const API_URL =
   "https://api.abcz.workers.dev/api/fitlog";
 
-const PLAN_KEY = "fitlog-plan-v1";
-const SAVED_KEY = "fitlog-saved-v1";
+const PLAN_STORAGE_KEY = "fitlog-plan-v1";
+const SAVED_STORAGE_KEY = "fitlog-saved-v1";
 
-type Toast = {
-  id: number;
-  message: string;
-} | null;
-
-type ContextValue = {
+type AppContextType = {
   workouts: Workout[];
   loading: boolean;
-  error: string | null;
 
   plan: PlanItem[];
   saved: number[];
 
-  toast: Toast;
+  toast: string | null;
 
   addToPlan: (id: number) => void;
   removeFromPlan: (id: number) => void;
@@ -43,160 +36,87 @@ type ContextValue = {
   isSaved: (id: number) => boolean;
 };
 
-const AppContext =
-  createContext<ContextValue | null>(null);
+const AppContext = createContext<
+  AppContextType | undefined
+>(undefined);
 
 export function AppProvider({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const [workouts, setWorkouts] =
-    useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<Workout[]>(
+    []
+  );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [plan, setPlan] = useState<PlanItem[]>(() => {
+    if (typeof window === "undefined") return [];
 
-  const [plan, setPlan] =
-    useState<PlanItem[]>([]);
-
-  const [saved, setSaved] =
-    useState<number[]>([]);
-
-  const [toast, setToast] =
-    useState<Toast>(null);
-
-  const [hydrated, setHydrated] =
-    useState(false);
-
-  // --------------------------------
-  // LOAD DATA FROM LOCAL STORAGE
-  // --------------------------------
-
-  useEffect(() => {
     try {
-      const savedPlan =
-        localStorage.getItem(PLAN_KEY);
-
-      const savedItems =
-        localStorage.getItem(SAVED_KEY);
-
-      if (savedPlan) {
-        const parsedPlan: unknown =
-          JSON.parse(savedPlan);
-
-        if (Array.isArray(parsedPlan)) {
-          const validPlan =
-            parsedPlan.filter(
-              (item): item is PlanItem =>
-                typeof item === "object" &&
-                item !== null &&
-                "id" in item &&
-                "done" in item &&
-                typeof item.id === "number" &&
-                typeof item.done === "boolean"
-            );
-
-          window.setTimeout(() => {
-            setPlan(validPlan);
-          }, 0);
-        }
-      }
-
-      if (savedItems) {
-        const parsedSaved: unknown =
-          JSON.parse(savedItems);
-
-        if (Array.isArray(parsedSaved)) {
-          const validSaved =
-            parsedSaved.filter(
-              (id): id is number =>
-                typeof id === "number"
-            );
-
-          window.setTimeout(() => {
-            setSaved(validSaved);
-          }, 0);
-        }
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load localStorage:",
-        error
+      const savedPlan = window.localStorage.getItem(
+        PLAN_STORAGE_KEY
       );
-    } finally {
-      window.setTimeout(() => {
-        setHydrated(true);
-      }, 0);
+      return savedPlan ? JSON.parse(savedPlan) : [];
+    } catch (error) {
+      console.error("LocalStorage loading error:", error);
+      return [];
     }
-  }, []);
+  });
 
-  // --------------------------------
-  // SAVE PLAN TO LOCAL STORAGE
-  // --------------------------------
+  const [saved, setSaved] = useState<number[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const savedWorkouts = window.localStorage.getItem(
+        SAVED_STORAGE_KEY
+      );
+      return savedWorkouts ? JSON.parse(savedWorkouts) : [];
+    } catch (error) {
+      console.error("LocalStorage loading error:", error);
+      return [];
+    }
+  });
+
+  const [toast, setToast] = useState<string | null>(
+    null
+  );
+
+  
+
+  const showToast = (message: string) => {
+    setToast(message);
+
+    setTimeout(() => {
+      setToast(null);
+    }, 2500);
+  };
+
+ 
 
   useEffect(() => {
-    if (!hydrated) return;
+    const controller = new AbortController();
 
-    localStorage.setItem(
-      PLAN_KEY,
-      JSON.stringify(plan)
-    );
-  }, [plan, hydrated]);
-
-  // --------------------------------
-  // SAVE SAVED WORKOUTS
-  // --------------------------------
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    localStorage.setItem(
-      SAVED_KEY,
-      JSON.stringify(saved)
-    );
-  }, [saved, hydrated]);
-
-  // --------------------------------
-  // FETCH WORKOUTS FROM API
-  // --------------------------------
-
-  useEffect(() => {
-    const controller =
-      new AbortController();
-
-    async function fetchWorkouts() {
+    async function loadWorkouts() {
       try {
         setLoading(true);
-        setError(null);
 
-        const response = await fetch(
-          API_URL,
-          {
-            signal: controller.signal,
-            cache: "no-store",
-          }
-        );
+        const response = await fetch(API_URL, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch workouts: ${response.status}`
+            `Workout API error: ${response.status}`
           );
         }
 
-        const data: unknown =
+        const data: Workout[] =
           await response.json();
 
-        if (!Array.isArray(data)) {
-          throw new Error(
-            "Invalid workout data received."
-          );
-        }
-
-        setWorkouts(data as Workout[]);
+        setWorkouts(data);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -206,276 +126,229 @@ export function AppProvider({
         }
 
         console.error(
-          "Workout API error:",
+          "Workout loading error:",
           error
-        );
-
-        setWorkouts([]);
-
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load workouts."
         );
       } finally {
         setLoading(false);
       }
     }
 
-    fetchWorkouts();
+    loadWorkouts();
 
     return () => {
       controller.abort();
     };
   }, []);
 
-  // --------------------------------
-  // TOAST
-  // --------------------------------
+  
 
-  const showToast = useCallback(
-    (message: string) => {
-      const id = Date.now();
-
-      setToast({
-        id,
-        message,
-      });
-
-      window.setTimeout(() => {
-        setToast((current) =>
-          current?.id === id
-            ? null
-            : current
-        );
-      }, 2400);
-    },
-    []
-  );
-
-  // --------------------------------
-  // ADD TO PLAN
-  // --------------------------------
-
-  const addToPlan = useCallback(
-    (id: number) => {
-      setPlan((current) => {
-        const alreadyExists =
-          current.some(
-            (item) => item.id === id
-          );
-
-        if (alreadyExists) {
-          showToast(
-            "Already in today's plan"
-          );
-
-          return current;
-        }
-
-        if (current.length >= 5) {
-          showToast(
-            "Today's plan is capped at 5 lifts"
-          );
-
-          return current;
-        }
-
-        showToast(
-          "Added to today's plan"
-        );
-
-        return [
-          ...current,
-          {
-            id,
-            done: false,
-          },
-        ];
-      });
-    },
-    [showToast]
-  );
-
-  // --------------------------------
-  // REMOVE FROM PLAN
-  // --------------------------------
-
-  const removeFromPlan = useCallback(
-    (id: number) => {
-      setPlan((current) =>
-        current.filter(
-          (item) => item.id !== id
-        )
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(
+        PLAN_STORAGE_KEY,
+        JSON.stringify(plan)
       );
+    }
+  }, [plan, loading]);
+
+  
+
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(
+        SAVED_STORAGE_KEY,
+        JSON.stringify(saved)
+      );
+    }
+  }, [saved, loading]);
+
+ 
+
+  const addToPlan = (id: number) => {
+    setPlan((currentPlan) => {
+      const alreadyExists = currentPlan.some(
+        (item) => item.id === id
+      );
+
+      if (alreadyExists) {
+        showToast(
+          "Workout is already in today's plan."
+        );
+
+        return currentPlan;
+      }
+
+      if (currentPlan.length >= 5) {
+        showToast(
+          "You can add maximum 5 workouts to your plan."
+        );
+
+        return currentPlan;
+      }
 
       showToast(
-        "Removed from today's plan"
-      );
-    },
-    [showToast]
-  );
-
-  // --------------------------------
-  // MARK WORKOUT AS DONE
-  // --------------------------------
-
-  const toggleDone = useCallback(
-    (id: number) => {
-      setPlan((current) =>
-        current.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                done: true,
-              }
-            : item
-        )
+        "Workout added to today's plan."
       );
 
-      showToast(
-        "Workout marked as done"
-      );
-    },
-    [showToast]
-  );
-
-  // --------------------------------
-  // SAVE WORKOUT
-  // --------------------------------
-
-  const saveWorkout = useCallback(
-    (id: number) => {
-      setSaved((current) => {
-        if (current.includes(id)) {
-          showToast("Already saved");
-
-          return current;
-        }
-
-        showToast(
-          "Saved for later"
-        );
-
-        return [
-          ...current,
+      return [
+        ...currentPlan,
+        {
           id,
-        ];
+          done: false,
+        },
+      ];
+    });
+  };
+
+ 
+
+  const removeFromPlan = (id: number) => {
+    setPlan((currentPlan) => {
+      const workout = workouts.find(
+        (item) => item.id === id
+      );
+
+      const updatedPlan = currentPlan.filter(
+        (item) => item.id !== id
+      );
+
+      if (updatedPlan.length !== currentPlan.length) {
+        showToast(
+          `${workout?.name ?? "Workout"} removed from your plan.`
+        );
+      }
+
+      return updatedPlan;
+    });
+  };
+
+  
+  const toggleDone = (id: number) => {
+    setPlan((currentPlan) => {
+      const workout = workouts.find(
+        (item) => item.id === id
+      );
+
+      return currentPlan.map((item) => {
+        if (item.id !== id) {
+          return item;
+        }
+
+        
+        if (item.done) {
+          showToast(
+            `${workout?.name ?? "Workout"} is already completed.`
+          );
+
+          return item;
+        }
+
+        showToast(
+          `${workout?.name ?? "Workout"} marked as done!`
+        );
+
+        return {
+          ...item,
+          done: true,
+        };
       });
-    },
-    [showToast]
-  );
+    });
+  };
 
-  // --------------------------------
-  // REMOVE SAVED WORKOUT
-  // --------------------------------
+  
 
-  const unsaveWorkout = useCallback(
-    (id: number) => {
-      setSaved((current) =>
-        current.filter(
-          (item) => item !== id
-        )
+  const saveWorkout = (id: number) => {
+    setSaved((currentSaved) => {
+      if (currentSaved.includes(id)) {
+        return currentSaved;
+      }
+
+      showToast("Workout saved for later.");
+
+      return [...currentSaved, id];
+    });
+  };
+
+ 
+  const unsaveWorkout = (id: number) => {
+    setSaved((currentSaved) => {
+      const updated = currentSaved.filter(
+        (item) => item !== id
       );
 
-      showToast(
-        "Removed from saved"
-      );
-    },
-    [showToast]
-  );
+      if (updated.length !== currentSaved.length) {
+        showToast("Workout removed from saved.");
+      }
 
-  // --------------------------------
-  // CONTEXT VALUE
-  // --------------------------------
+      return updated;
+    });
+  };
 
-  const value = useMemo<ContextValue>(
-    () => ({
-      workouts,
-      loading,
-      error,
+  
+  const isInPlan = (id: number) => {
+    return plan.some(
+      (item) => item.id === id
+    );
+  };
 
-      plan,
-      saved,
-
-      toast,
-
-      addToPlan,
-      removeFromPlan,
-      toggleDone,
-
-      saveWorkout,
-      unsaveWorkout,
-
-      isInPlan: (id: number) =>
-        plan.some(
-          (item) => item.id === id
-        ),
-
-      isSaved: (id: number) =>
-        saved.includes(id),
-    }),
-    [
-      workouts,
-      loading,
-      error,
-      plan,
-      saved,
-      toast,
-
-      addToPlan,
-      removeFromPlan,
-      toggleDone,
-
-      saveWorkout,
-      unsaveWorkout,
-    ]
-  );
+  const isSaved = (id: number) => {
+    return saved.includes(id);
+  };
 
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider
+      value={{
+        workouts,
+        loading,
+
+        plan,
+        saved,
+
+        toast,
+
+        addToPlan,
+        removeFromPlan,
+        toggleDone,
+
+        saveWorkout,
+        unsaveWorkout,
+
+        isInPlan,
+        isSaved,
+      }}
+    >
       {children}
 
-      <ToastView toast={toast} />
+     
+
+      {toast && (
+        <div className="fixed bottom-5 left-1/2 z-9999 -translate-x-1/2 px-4">
+          <div className="flex items-center gap-3 rounded-xl border border-[#ccff00]/40 bg-[#151515] px-5 py-3 shadow-2xl">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ccff00] text-black">
+              ✓
+            </div>
+
+            <p className="whitespace-nowrap text-sm font-bold text-white">
+              {toast}
+            </p>
+          </div>
+        </div>
+      )}
     </AppContext.Provider>
   );
 }
 
-// --------------------------------
-// TOAST UI
-// --------------------------------
 
-function ToastView({
-  toast,
-}: {
-  toast: Toast;
-}) {
-  if (!toast) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 rounded-full border border-[#C2F800]/30 bg-[#151515] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-2xl"
-    >
-      {toast.message}
-    </div>
-  );
-}
-
-// --------------------------------
-// USE APP HOOK
-// --------------------------------
 
 export function useApp() {
-  const value =
-    useContext(AppContext);
+  const context = useContext(AppContext);
 
-  if (!value) {
+  if (!context) {
     throw new Error(
       "useApp must be used inside AppProvider"
     );
   }
 
-  return value;
+  return context;
 }
