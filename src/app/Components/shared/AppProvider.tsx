@@ -51,45 +51,84 @@ export function AppProvider({
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [plan, setPlan] = useState<PlanItem[]>(() => {
-    if (typeof window === "undefined") return [];
+  /*
+   * IMPORTANT:
+   * Start with the same values on server and client.
+   */
+  const [plan, setPlan] = useState<PlanItem[]>([]);
+  const [saved, setSaved] = useState<number[]>([]);
+
+  const [hydrated, setHydrated] = useState(false);
+  const [toast, setToast] = useState<Toast>(null);
+
+  /*
+   * Load saved data from localStorage
+   * AFTER the first render.
+   */
+  useEffect(() => {
+    let nextPlan: PlanItem[] | undefined;
+    let nextSaved: number[] | undefined;
 
     try {
       const rawPlan = localStorage.getItem(PLAN_KEY);
-      return rawPlan ? JSON.parse(rawPlan) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [saved, setSaved] = useState<number[]>(() => {
-    if (typeof window === "undefined") return [];
 
-    try {
+      if (rawPlan) {
+        const parsedPlan: PlanItem[] = JSON.parse(rawPlan);
+
+        if (Array.isArray(parsedPlan)) {
+          nextPlan = parsedPlan;
+        }
+      }
+
       const rawSaved = localStorage.getItem(SAVED_KEY);
-      return rawSaved ? JSON.parse(rawSaved) : [];
-    } catch {
-      return [];
-    }
-  });
 
-  const [toast, setToast] = useState<Toast>(null);
+      if (rawSaved) {
+        const parsedSaved: number[] = JSON.parse(rawSaved);
+
+        if (Array.isArray(parsedSaved)) {
+          nextSaved = parsedSaved;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load FitLog data:",
+        error
+      );
+    } finally {
+      queueMicrotask(() => {
+        if (nextPlan) setPlan(nextPlan);
+        if (nextSaved) setSaved(nextSaved);
+        setHydrated(true);
+      });
+    }
+  }, []);
 
   /*
    * Persist plan
    */
   useEffect(() => {
-    localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
-  }, [plan]);
+    if (!hydrated) return;
+
+    localStorage.setItem(
+      PLAN_KEY,
+      JSON.stringify(plan)
+    );
+  }, [plan, hydrated]);
 
   /*
-   * Persist saved
+   * Persist saved workouts
    */
   useEffect(() => {
-    localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
-  }, [saved]);
+    if (!hydrated) return;
+
+    localStorage.setItem(
+      SAVED_KEY,
+      JSON.stringify(saved)
+    );
+  }, [saved, hydrated]);
 
   /*
-   * Fetch workouts
+   * Fetch workouts from API
    */
   useEffect(() => {
     const controller = new AbortController();
@@ -104,16 +143,28 @@ export function AppProvider({
         });
 
         if (!response.ok) {
-          throw new Error("Failed to load workouts");
+          throw new Error(
+            `Failed to load workouts: ${response.status}`
+          );
         }
 
         const data: Workout[] = await response.json();
 
         setWorkouts(data);
       } catch (error) {
-        if ((error as Error)?.name !== "AbortError") {
-          setWorkouts([]);
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
+          return;
         }
+
+        console.error(
+          "Workout API error:",
+          error
+        );
+
+        setWorkouts([]);
       } finally {
         setLoading(false);
       }
@@ -129,20 +180,23 @@ export function AppProvider({
   /*
    * Toast
    */
-  const showToast = useCallback((message: string) => {
-    const id = Date.now();
+  const showToast = useCallback(
+    (message: string) => {
+      const id = Date.now();
 
-    setToast({
-      id,
-      message,
-    });
+      setToast({
+        id,
+        message,
+      });
 
-    window.setTimeout(() => {
-      setToast((current) =>
-        current?.id === id ? null : current
-      );
-    }, 2400);
-  }, []);
+      window.setTimeout(() => {
+        setToast((current) =>
+          current?.id === id ? null : current
+        );
+      }, 2400);
+    },
+    []
+  );
 
   /*
    * Add to today's plan
@@ -150,17 +204,29 @@ export function AppProvider({
   const addToPlan = useCallback(
     (id: number) => {
       setPlan((current) => {
-        if (current.some((item) => item.id === id)) {
-          showToast("Already in today's plan");
+        if (
+          current.some(
+            (item) => item.id === id
+          )
+        ) {
+          showToast(
+            "Already in today's plan"
+          );
+
           return current;
         }
 
         if (current.length >= 5) {
-          showToast("Today's plan is capped at 5 lifts");
+          showToast(
+            "Today's plan is capped at 5 lifts"
+          );
+
           return current;
         }
 
-        showToast("Added to today's plan");
+        showToast(
+          "Added to today's plan"
+        );
 
         return [
           ...current,
@@ -175,15 +241,19 @@ export function AppProvider({
   );
 
   /*
-   * Remove from plan
+   * Remove from today's plan
    */
   const removeFromPlan = useCallback(
     (id: number) => {
       setPlan((current) =>
-        current.filter((item) => item.id !== id)
+        current.filter(
+          (item) => item.id !== id
+        )
       );
 
-      showToast("Removed from today's plan");
+      showToast(
+        "Removed from today's plan"
+      );
     },
     [showToast]
   );
@@ -204,23 +274,28 @@ export function AppProvider({
         )
       );
 
-      showToast("Workout marked as done");
+      showToast(
+        "Workout marked as done"
+      );
     },
     [showToast]
   );
 
   /*
-   * Save
+   * Save workout
    */
   const saveWorkout = useCallback(
     (id: number) => {
       setSaved((current) => {
         if (current.includes(id)) {
           showToast("Already saved");
+
           return current;
         }
 
-        showToast("Saved for later");
+        showToast(
+          "Saved for later"
+        );
 
         return [...current, id];
       });
@@ -229,19 +304,26 @@ export function AppProvider({
   );
 
   /*
-   * Unsave
+   * Remove from saved
    */
   const unsaveWorkout = useCallback(
     (id: number) => {
       setSaved((current) =>
-        current.filter((item) => item !== id)
+        current.filter(
+          (item) => item !== id
+        )
       );
 
-      showToast("Removed from saved");
+      showToast(
+        "Removed from saved"
+      );
     },
     [showToast]
   );
 
+  /*
+   * Context value
+   */
   const value = useMemo<ContextValue>(
     () => ({
       workouts,
@@ -260,7 +342,9 @@ export function AppProvider({
       unsaveWorkout,
 
       isInPlan: (id) =>
-        plan.some((item) => item.id === id),
+        plan.some(
+          (item) => item.id === id
+        ),
 
       isSaved: (id) =>
         saved.includes(id),
@@ -288,6 +372,9 @@ export function AppProvider({
   );
 }
 
+/*
+ * Toast UI
+ */
 function ToastView({
   toast,
 }: {
@@ -304,6 +391,9 @@ function ToastView({
   );
 }
 
+/*
+ * useApp hook
+ */
 export function useApp() {
   const value = useContext(AppContext);
 
