@@ -14,7 +14,7 @@ import type { Workout } from "../../../types";
 import WorkoutActions from "../../Components/shared/WorkoutActions";
 
 const API_URL =
-  "https://api.abcz.workers.dev/api/fitlog";
+  "https://api.api-store.workers.dev/api/fitlog/:id";
 
 export default function WorkoutDetailsPage() {
   const params = useParams();
@@ -44,12 +44,11 @@ export default function WorkoutDetailsPage() {
           );
         }
 
-        const response = await fetch(
-          `${API_URL}/${id}`,
-          {
-            cache: "no-store",
-          }
-        );
+        const url = API_URL.replace(":id", String(id));
+
+const response = await fetch(url, {
+  cache: "no-store",
+});
 
         if (!response.ok) {
           throw new Error(

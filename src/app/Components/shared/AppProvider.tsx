@@ -11,7 +11,7 @@ import {
 import type { Workout, PlanItem } from "../../../types";
 
 const API_URL =
-  "https://api.abcz.workers.dev/api/fitlog";
+  "https://api.api-store.workers.dev/api/fitlog";
 
 const PLAN_STORAGE_KEY = "fitlog-plan-v1";
 const SAVED_STORAGE_KEY = "fitlog-saved-v1";

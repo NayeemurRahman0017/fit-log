@@ -1,11 +1,11 @@
 import Image from "next/image";
-import logo from "@/assets/banner.png"
+import logo from "@/assets/banner.png";
 
 const Banner = () => {
   return (
     <section className="relative overflow-hidden border-b border-[#24282E] bg-[#0B0D10]">
       
-      {/* Background glow */}
+      
       <div className="
         pointer-events-none
         absolute
@@ -40,10 +40,10 @@ const Banner = () => {
           lg:py-24
         ">
 
-          {/* ================= LEFT CONTENT ================= */}
+          
           <div className="relative z-10 max-w-2xl">
 
-            {/* Eyebrow */}
+            
             <p className="
               mb-5
               text-[11px]
@@ -56,7 +56,7 @@ const Banner = () => {
               WORKOUT LIBRARY
             </p>
 
-            {/* Main heading */}
+            
             <h1 className="
               font-display
               text-5xl
@@ -80,7 +80,7 @@ const Banner = () => {
               LOG EVERY SET.
             </h1>
 
-            {/* Description */}
+            
             <p className="
               mt-7
               max-w-xl
@@ -96,7 +96,7 @@ const Banner = () => {
               week&apos;s work add up.
             </p>
 
-            {/* CTA */}
+            
             <a
               href="#library"
               className="
@@ -125,7 +125,7 @@ const Banner = () => {
             >
               BROWSE WORKOUTS
 
-              {/* Arrow */}
+              
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="17"
@@ -149,7 +149,7 @@ const Banner = () => {
 
           </div>
 
-          {/* ================= RIGHT IMAGE ================= */}
+          
           <div className="
             relative
             flex
@@ -158,7 +158,7 @@ const Banner = () => {
             lg:justify-end
           ">
 
-            {/* Image glow */}
+            
             <div className="
               absolute
               h-70
@@ -170,7 +170,7 @@ const Banner = () => {
               sm:w-95
             " />
 
-            {/* Image frame */}
+            
             <div className="
               relative
               w-full
@@ -205,7 +205,7 @@ const Banner = () => {
                   "
                 />
 
-                {/* Dark overlay */}
+                
                 <div className="
                   absolute
                   inset-0
@@ -217,7 +217,7 @@ const Banner = () => {
 
               </div>
 
-              {/* Small accent line */}
+              
               <div className="
                 absolute
                 bottom-0

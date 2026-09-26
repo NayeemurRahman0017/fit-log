@@ -3,11 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import logo from "@/assets/logo.png";
 import { usePathname } from "next/navigation";
 
-import logo from "@/assets/logo.png";
 import { useApp } from "./AppProvider";
-
 type IconProps = {
   size?: number;
   strokeWidth?: number;
