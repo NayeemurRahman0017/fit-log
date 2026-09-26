@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
-    "daisyui": "^5.7.44",
-    "lucide-react": "^1.48.0",
-    "tailwindcss": "^4.3.3"
-  }
-}
