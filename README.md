@@ -1,4 +1,4 @@
-# FitLog 🏋️
+#Project Name: FitLog 🏋️
 
 FitLog is a modern and responsive workout management web application. 
 It allows users to explore workouts, view detailed exercise information, 
