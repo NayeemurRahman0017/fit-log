@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import logo from "@/assets/logo.png";
 import { usePathname } from "next/navigation";
 
+import logo from "@/assets/logo.png";
 import { useApp } from "./AppProvider";
+
 type IconProps = {
   size?: number;
   strokeWidth?: number;
 };
+
 
 const Menu = ({
   size = 24,
@@ -34,6 +36,8 @@ const Menu = ({
   </svg>
 );
 
+
+
 const CloseIcon = ({
   size = 24,
   strokeWidth = 2,
@@ -56,12 +60,13 @@ const CloseIcon = ({
   </svg>
 );
 
+
+
 const Navbar = () => {
   const pathname = usePathname();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
- 
   const { plan, saved } = useApp();
 
   const planCount = plan.length;
@@ -76,12 +81,17 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#24282E] bg-[#0B0D10]/95 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-360 px-4 sm:px-6 lg:px-10 xl:px-12">
+      <div className="mx-auto w-full max-w-360 px-3 sm:px-6 lg:px-10 xl:px-12">
+
         
-        <div className="flex h-18 items-center justify-between">
-          
-          <div className="flex items-center">
-            
+        <div className="flex h-18 w-full items-center gap-2">
+
+         
+
+          <div className="flex min-w-0 flex-1 items-center">
+
+           
+
             <button
               type="button"
               aria-label={
@@ -94,10 +104,11 @@ const Navbar = () => {
                 setIsMenuOpen((previous) => !previous)
               }
               className="
-                mr-3
+                mr-2
                 flex
                 h-9
                 w-9
+                shrink-0
                 items-center
                 justify-center
                 rounded-lg
@@ -116,10 +127,17 @@ const Navbar = () => {
             </button>
 
             
+
             <Link
               href="/"
               onClick={closeMobileMenu}
-              className="group flex items-center gap-2.5"
+              className="
+                group
+                flex
+                min-w-0
+                items-center
+                gap-2
+              "
             >
               <Image
                 src={logo}
@@ -130,6 +148,7 @@ const Navbar = () => {
                 className="
                   h-8.5
                   w-8.5
+                  shrink-0
                   object-contain
                   transition
                   group-hover:scale-105
@@ -138,11 +157,14 @@ const Navbar = () => {
 
               <span
                 className="
+                  min-w-0
+                  truncate
                   font-display
                   text-[21px]
                   font-bold
                   tracking-[0.08em]
                   text-white
+                  max-[360px]:hidden
                 "
               >
                 FITLOG
@@ -150,9 +172,13 @@ const Navbar = () => {
             </Link>
           </div>
 
+         
+
           <nav className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
             <div className="flex items-center gap-1">
+
               
+
               <Link
                 href="/"
                 className={`
@@ -161,7 +187,6 @@ const Navbar = () => {
                   py-2.5
                   text-[12px]
                   font-semibold
-                  text-[green]
                   uppercase
                   tracking-[0.12em]
                   transition
@@ -190,6 +215,7 @@ const Navbar = () => {
                 )}
               </Link>
 
+              
               <Link
                 href="/my-plan"
                 className={`
@@ -229,26 +255,45 @@ const Navbar = () => {
           </nav>
 
           
-          <div className="flex items-center gap-2">
+
+          <div
+            className="
+              ml-auto
+              flex
+              shrink-0
+              flex-nowrap
+              items-center
+              gap-1.5
+              sm:gap-2
+            "
+          >
+
             
+
             <Link
               href="/my-plan"
               className="
                 inline-flex
                 h-8.5
+                shrink-0
                 items-center
-                gap-2
+                gap-1
+                whitespace-nowrap
                 rounded-full
                 bg-[#C2F800]
-                px-3.5
-                text-[10px]
+                px-2.5
+                text-[9px]
                 font-extrabold
                 uppercase
-                tracking-[0.12em]
+                tracking-wider
                 text-[#080A0D]
                 transition
                 hover:brightness-110
                 active:scale-95
+                sm:gap-2
+                sm:px-3.5
+                sm:text-[10px]
+                sm:tracking-[0.12em]
               "
             >
               <span>PLAN</span>
@@ -256,40 +301,48 @@ const Navbar = () => {
               <span
                 className="
                   flex
-                  min-w-4.5
+                  h-5
+                  min-w-5
+                  shrink-0
                   items-center
                   justify-center
                   rounded-full
                   bg-[#080A0D]/10
                   px-1
-                  py-0.5
-                  text-[10px]
+                  text-[9px]
+                  sm:text-[10px]
                 "
               >
                 {planCount}
               </span>
             </Link>
 
-            
+           
             <Link
               href="/my-plan"
               className="
                 inline-flex
                 h-8.5
+                shrink-0
                 items-center
-                gap-2
+                gap-1
+                whitespace-nowrap
                 rounded-full
                 border
                 border-[#C2F800]
-                px-3.5
-                text-[10px]
+                px-2.5
+                text-[9px]
                 font-extrabold
                 uppercase
-                tracking-[0.12em]
+                tracking-wider
                 text-[#C2F800]
                 transition
                 hover:bg-[#C2F800]/10
                 active:scale-95
+                sm:gap-2
+                sm:px-3.5
+                sm:text-[10px]
+                sm:tracking-[0.12em]
               "
             >
               <span>SAVED</span>
@@ -297,14 +350,16 @@ const Navbar = () => {
               <span
                 className="
                   flex
-                  min-w-4.5
+                  h-5
+                  min-w-5
+                  shrink-0
                   items-center
                   justify-center
                   rounded-full
                   bg-[#C2F800]/10
                   px-1
-                  py-0.5
-                  text-[10px]
+                  text-[9px]
+                  sm:text-[10px]
                 "
               >
                 {savedCount}
@@ -314,6 +369,7 @@ const Navbar = () => {
         </div>
 
         
+
         {isMenuOpen && (
           <div
             className="
@@ -324,7 +380,9 @@ const Navbar = () => {
             "
           >
             <nav className="flex flex-col gap-1">
+
               
+
               <Link
                 href="/"
                 onClick={closeMobileMenu}
@@ -334,7 +392,6 @@ const Navbar = () => {
                   py-3
                   text-xs
                   font-bold
-                  text-[Green]
                   uppercase
                   tracking-[0.12em]
                   transition
@@ -348,7 +405,8 @@ const Navbar = () => {
                 Workout
               </Link>
 
-             
+              
+
               <Link
                 href="/my-plan"
                 onClick={closeMobileMenu}
@@ -372,15 +430,19 @@ const Navbar = () => {
               </Link>
 
               
-              <div className="flex gap-2 px-4 pt-3">
-                
+              <div className="flex flex-nowrap gap-2 px-4 pt-3">
+
+               
+
                 <Link
                   href="/my-plan"
                   onClick={closeMobileMenu}
                   className="
                     inline-flex
+                    shrink-0
                     items-center
                     gap-2
+                    whitespace-nowrap
                     rounded-full
                     bg-[#C2F800]
                     px-4
@@ -399,14 +461,17 @@ const Navbar = () => {
                   </span>
                 </Link>
 
-                
+               
+
                 <Link
                   href="/my-plan"
                   onClick={closeMobileMenu}
                   className="
                     inline-flex
+                    shrink-0
                     items-center
                     gap-2
+                    whitespace-nowrap
                     rounded-full
                     border
                     border-[#C2F800]
@@ -425,6 +490,7 @@ const Navbar = () => {
                     {savedCount}
                   </span>
                 </Link>
+
               </div>
             </nav>
           </div>
