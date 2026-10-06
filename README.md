@@ -4,6 +4,10 @@ FitLog is a modern and responsive workout management web application.
 It allows users to explore workouts, view detailed exercise information, 
 add workouts to today's plan, save workouts for later, and track completed exercises.
 
+## 🔗 Live Demo
+
+https://fit-log-five-orpin.vercel.app
+
 ## 🛠️ Technologies Used
 
 - Next.js
